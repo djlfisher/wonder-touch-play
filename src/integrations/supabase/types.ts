@@ -14,7 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_sessions: {
+        Row: {
+          created_at: string
+          device_id: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      child_settings: {
+        Row: {
+          calm_mode: boolean
+          created_at: string
+          id: string
+          session_id: string
+          session_minutes: number
+          sound_enabled: boolean
+          updated_at: string
+          world_color: boolean
+          world_motion: boolean
+          world_pattern: boolean
+          world_shape: boolean
+        }
+        Insert: {
+          calm_mode?: boolean
+          created_at?: string
+          id?: string
+          session_id: string
+          session_minutes?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          world_color?: boolean
+          world_motion?: boolean
+          world_pattern?: boolean
+          world_shape?: boolean
+        }
+        Update: {
+          calm_mode?: boolean
+          created_at?: string
+          id?: string
+          session_id?: string
+          session_minutes?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          world_color?: boolean
+          world_motion?: boolean
+          world_pattern?: boolean
+          world_shape?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_settings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "app_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_events: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          world: string
+          x_pos: number | null
+          y_pos: number | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          world: string
+          x_pos?: number | null
+          y_pos?: number | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          world?: string
+          x_pos?: number | null
+          y_pos?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "app_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
