@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { playSound } from "@/lib/sounds";
 
 const COLORS = [
   "hsl(350, 70%, 65%)",
@@ -81,6 +82,7 @@ const MotionWorld = () => {
   const handleObjectTap = useCallback((id: number, e: React.TouchEvent | React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    playSound("sparkle");
     setObjects((prev) =>
       prev.map((obj) =>
         obj.id === id

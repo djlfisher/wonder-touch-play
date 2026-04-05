@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { playSound } from "@/lib/sounds";
 
 const COLORS = [
   "hsl(350, 70%, 65%)", // coral
@@ -40,6 +41,7 @@ const ColorWorld = () => {
     colorIndex.current = (colorIndex.current + 1) % COLORS.length;
     const newColor = COLORS[colorIndex.current];
     setBgColor(newColor);
+    playSound("chime");
 
     const id = bloomId.current++;
     setBlooms((prev) => [...prev.slice(-8), { id, x, y, color: newColor }]);
