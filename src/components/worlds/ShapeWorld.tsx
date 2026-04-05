@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { playSound } from "@/lib/sounds";
 
 const SHAPES = ["circle", "square", "triangle", "diamond", "star"] as const;
 const COLORS = [
@@ -77,6 +78,7 @@ const ShapeWorld = () => {
     };
 
     setShapes((prev) => [...prev.slice(-12), newShape]);
+    playSound("pop");
   }, []);
 
   const handleShapeTap = useCallback((id: number) => {

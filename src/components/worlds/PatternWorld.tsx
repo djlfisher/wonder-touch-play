@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { playSound } from "@/lib/sounds";
 
 const PATTERNS = [
   { name: "dots", colors: ["hsl(350,70%,65%)", "hsl(45,90%,65%)", "hsl(200,70%,72%)"] },
@@ -24,6 +25,7 @@ const PatternWorld = () => {
   const handleTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
     setTaps((t) => t + 1);
+    playSound("tone");
     if (taps % 5 === 4) {
       setPatternIdx((i) => (i + 1) % PATTERNS.length);
     }

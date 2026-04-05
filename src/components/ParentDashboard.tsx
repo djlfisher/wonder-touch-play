@@ -1,40 +1,33 @@
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Palette, Shapes, Grid3X3, Wind } from "lucide-react";
+import { ArrowLeft, Palette, Shapes, Grid3X3, Wind, Volume2, Timer } from "lucide-react";
+
+interface Settings {
+  worlds: { color: boolean; shape: boolean; pattern: boolean; motion: boolean };
+  sessionMinutes: number;
+  calmMode: boolean;
+  soundEnabled: boolean;
+  timerEnabled: boolean;
+}
 
 interface ParentDashboardProps {
   onBack: () => void;
-  settings: {
-    worlds: { color: boolean; shape: boolean; pattern: boolean; motion: boolean };
-    sessionMinutes: number;
-    calmMode: boolean;
-  };
-  onSettingsChange: (settings: ParentDashboardProps["settings"]) => void;
+  settings: Settings;
+  onSettingsChange: (settings: Settings) => void;
 }
 
 const ParentDashboard = ({ onBack, settings, onSettingsChange }: ParentDashboardProps) => {
   const [localSettings, setLocalSettings] = useState(settings);
 
+  const update = (partial: Partial<Settings>) => {
+    const updated = { ...localSettings, ...partial };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
+  };
+
   const updateWorld = (key: keyof typeof localSettings.worlds) => {
-    const updated = {
-      ...localSettings,
-      worlds: { ...localSettings.worlds, [key]: !localSettings.worlds[key] },
-    };
-    setLocalSettings(updated);
-    onSettingsChange(updated);
-  };
-
-  const updateSession = (val: number[]) => {
-    const updated = { ...localSettings, sessionMinutes: val[0] };
-    setLocalSettings(updated);
-    onSettingsChange(updated);
-  };
-
-  const toggleCalm = () => {
-    const updated = { ...localSettings, calmMode: !localSettings.calmMode };
-    setLocalSettings(updated);
-    onSettingsChange(updated);
+    update({ worlds: { ...localSettings.worlds, [key]: !localSettings.worlds[key] } });
   };
 
   const worlds = [
@@ -88,25 +81,66 @@ const ParentDashboard = ({ onBack, settings, onSettingsChange }: ParentDashboard
           </div>
         </section>
 
-        {/* Session duration */}
+        {/* Session timer */}
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            Session Duration
+            Session Timer
           </h2>
-          <div className="p-4 bg-card rounded-2xl shadow-sm border border-border">
-            <div className="flex justify-between mb-3">
-              <span className="font-nunito text-foreground">Timer</span>
-              <span className="font-nunito font-bold text-primary">
-                {localSettings.sessionMinutes} min
-              </span>
+          <div className="p-4 bg-card rounded-2xl shadow-sm border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-mint rounded-xl flex items-center justify-center">
+                  <Timer size={20} className="text-primary-foreground" />
+                </div>
+                <div>
+                  <span className="font-nunito font-semibold text-foreground block">Enable Timer</span>
+                  <span className="text-xs text-muted-foreground">Gently ends session after set time</span>
+                </div>
+              </div>
+              <Switch
+                checked={localSettings.timerEnabled}
+                onCheckedChange={(v) => update({ timerEnabled: v })}
+              />
             </div>
-            <Slider
-              value={[localSettings.sessionMinutes]}
-              onValueChange={updateSession}
-              min={5}
-              max={30}
-              step={5}
-              className="w-full"
+            {localSettings.timerEnabled && (
+              <div>
+                <div className="flex justify-between mb-3">
+                  <span className="font-nunito text-foreground text-sm">Duration</span>
+                  <span className="font-nunito font-bold text-primary">
+                    {localSettings.sessionMinutes} min
+                  </span>
+                </div>
+                <Slider
+                  value={[localSettings.sessionMinutes]}
+                  onValueChange={(v) => update({ sessionMinutes: v[0] })}
+                  min={5}
+                  max={30}
+                  step={5}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Sound */}
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Sound Effects
+          </h2>
+          <div className="flex items-center justify-between p-4 bg-card rounded-2xl shadow-sm border border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-sunny rounded-xl flex items-center justify-center">
+                <Volume2 size={20} className="text-primary-foreground" />
+              </div>
+              <div>
+                <span className="font-nunito font-semibold text-foreground block">Sound</span>
+                <span className="text-xs text-muted-foreground">Gentle chimes & soft pops</span>
+              </div>
+            </div>
+            <Switch
+              checked={localSettings.soundEnabled}
+              onCheckedChange={(v) => update({ soundEnabled: v })}
             />
           </div>
         </section>
@@ -123,7 +157,7 @@ const ParentDashboard = ({ onBack, settings, onSettingsChange }: ParentDashboard
                 Slower animations, softer colors
               </span>
             </div>
-            <Switch checked={localSettings.calmMode} onCheckedChange={toggleCalm} />
+            <Switch checked={localSettings.calmMode} onCheckedChange={(v) => update({ calmMode: v })} />
           </div>
         </section>
       </div>
