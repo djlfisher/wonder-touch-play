@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 const getDeviceId = (): string => {
   let id = localStorage.getItem("le_device_id");
@@ -21,7 +22,7 @@ export const useAnalytics = (world: string) => {
     event_type: string;
     x_pos: number | null;
     y_pos: number | null;
-    metadata: Record<string, unknown> | null;
+    metadata: Json | null;
   }>>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -37,7 +38,7 @@ export const useAnalytics = (world: string) => {
   }, []);
 
   const trackEvent = useCallback(
-    (eventType: string, x?: number, y?: number, metadata?: Record<string, unknown>) => {
+    (eventType: string, x?: number, y?: number, metadata?: Record<string, Json | undefined>) => {
       batchRef.current.push({
         session_id: getSessionId(),
         world,
