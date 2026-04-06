@@ -87,6 +87,7 @@ const MotionWorld = () => {
     e.stopPropagation();
     e.preventDefault();
     playSound("sparkle");
+    trackEvent("object_tap", undefined, undefined, { objectId: id });
     setObjects((prev) =>
       prev.map((obj) =>
         obj.id === id

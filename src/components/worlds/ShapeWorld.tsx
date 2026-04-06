@@ -83,6 +83,7 @@ const ShapeWorld = () => {
 
     setShapes((prev) => [...prev.slice(-12), newShape]);
     playSound("pop");
+    trackEvent("tap", x, y, { shape: newShape.type, color: newShape.color });
   }, []);
 
   const handleShapeTap = useCallback((id: number) => {
