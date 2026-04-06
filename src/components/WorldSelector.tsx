@@ -1,4 +1,5 @@
-import { Palette, Shapes, Grid3X3, Wind, Settings } from "lucide-react";
+import { Palette, Shapes, Grid3X3, Wind, Settings, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type WorldType = "color" | "shape" | "pattern" | "motion";
 
@@ -17,6 +18,7 @@ const worlds = [
 
 const WorldSelector = ({ onSelect, onSettings, enabledWorlds }: WorldSelectorProps) => {
   const available = worlds.filter((w) => enabledWorlds[w.key]);
+  const navigate = useNavigate();
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6">
@@ -48,14 +50,23 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds }: WorldSelectorPro
         ))}
       </div>
 
-      {/* Settings button */}
-      <button
-        onClick={onSettings}
-        className="flex items-center gap-2 px-5 py-3 bg-muted rounded-full text-muted-foreground touch-target active:scale-95 transition-transform"
-      >
-        <Settings size={18} />
-        <span className="font-nunito font-semibold text-sm">Parent Settings</span>
-      </button>
+      {/* Bottom actions */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onSettings}
+          className="flex items-center gap-2 px-5 py-3 bg-muted rounded-full text-muted-foreground touch-target active:scale-95 transition-transform"
+        >
+          <Settings size={18} />
+          <span className="font-nunito font-semibold text-sm">Parent Settings</span>
+        </button>
+        <button
+          onClick={() => navigate("/install")}
+          className="flex items-center gap-2 px-5 py-3 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
+        >
+          <Download size={18} />
+          <span className="font-nunito font-semibold text-sm">Install</span>
+        </button>
+      </div>
     </div>
   );
 };
