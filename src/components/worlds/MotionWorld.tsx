@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { playSound } from "@/lib/sounds";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const COLORS = [
   "hsl(350, 70%, 65%)",
@@ -27,6 +28,9 @@ const MotionWorld = () => {
   const [objects, setObjects] = useState<FloatingObject[]>([]);
   const animRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { trackEvent, flush } = useAnalytics("motion");
+
+  useEffect(() => () => { flush(); }, [flush]);
 
   // Initialize floating objects
   useEffect(() => {
@@ -83,6 +87,7 @@ const MotionWorld = () => {
     e.stopPropagation();
     e.preventDefault();
     playSound("sparkle");
+    trackEvent("object_tap", undefined, undefined, { objectId: id });
     setObjects((prev) =>
       prev.map((obj) =>
         obj.id === id

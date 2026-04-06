@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const PATTERNS = [
   { name: "dots", colors: ["hsl(350,70%,65%)", "hsl(45,90%,65%)", "hsl(200,70%,72%)"] },
@@ -12,6 +13,9 @@ const PatternWorld = () => {
   const [patternIdx, setPatternIdx] = useState(0);
   const [phase, setPhase] = useState(0);
   const [taps, setTaps] = useState(0);
+  const { trackEvent, flush } = useAnalytics("pattern");
+
+  useEffect(() => () => { flush(); }, [flush]);
 
   const pattern = PATTERNS[patternIdx];
 
@@ -26,6 +30,7 @@ const PatternWorld = () => {
     e.preventDefault();
     setTaps((t) => t + 1);
     playSound("tone");
+    trackEvent("tap", undefined, undefined, { pattern: PATTERNS[patternIdx].name });
     if (taps % 5 === 4) {
       setPatternIdx((i) => (i + 1) % PATTERNS.length);
     }

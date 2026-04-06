@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const COLORS = [
   "hsl(350, 70%, 65%)", // coral
@@ -24,6 +25,9 @@ const ColorWorld = () => {
   const [blooms, setBlooms] = useState<Bloom[]>([]);
   const colorIndex = useRef(0);
   const bloomId = useRef(0);
+  const { trackEvent, flush } = useAnalytics("color");
+
+  useEffect(() => () => { flush(); }, [flush]);
 
   const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
@@ -42,6 +46,7 @@ const ColorWorld = () => {
     const newColor = COLORS[colorIndex.current];
     setBgColor(newColor);
     playSound("chime");
+    trackEvent("tap", x, y, { color: newColor });
 
     const id = bloomId.current++;
     setBlooms((prev) => [...prev.slice(-8), { id, x, y, color: newColor }]);

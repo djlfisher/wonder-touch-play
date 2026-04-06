@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const SHAPES = ["circle", "square", "triangle", "diamond", "star"] as const;
 const COLORS = [
@@ -51,6 +52,9 @@ const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: nu
 const ShapeWorld = () => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const shapeId = useRef(0);
+  const { trackEvent, flush } = useAnalytics("shape");
+
+  useEffect(() => () => { flush(); }, [flush]);
 
   const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
@@ -79,6 +83,7 @@ const ShapeWorld = () => {
 
     setShapes((prev) => [...prev.slice(-12), newShape]);
     playSound("pop");
+    trackEvent("tap", x, y, { shape: newShape.type, color: newShape.color });
   }, []);
 
   const handleShapeTap = useCallback((id: number) => {
