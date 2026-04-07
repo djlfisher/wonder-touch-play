@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
  * Sets the x-device-id header on the Supabase client so RLS policies
  * can scope data access to the current device.
  */
-export const setDeviceIdHeader = (deviceId: string) => {
-  supabase.rest.headers["x-device-id"] = deviceId;
+const setDeviceIdHeader = (deviceId: string) => {
+  // Use type assertion to access the internal headers object
+  (supabase as any).rest.headers["x-device-id"] = deviceId;
+  (supabase as any).realtime.headers["x-device-id"] = deviceId;
 };
 
 /**
