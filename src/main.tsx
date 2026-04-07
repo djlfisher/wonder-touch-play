@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { initDeviceId } from "./lib/supabase-headers";
+
+// Initialize device ID header for RLS scoping before any Supabase calls
+initDeviceId();
 
 // PWA: prevent service worker registration in iframes / preview hosts
 const isInIframe = (() => {
