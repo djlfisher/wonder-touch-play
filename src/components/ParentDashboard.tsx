@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Palette, Shapes, Grid3X3, Wind, Music, Volume2, Timer, BarChart3 } from "lucide-react";
+import { ArrowLeft, Palette, Shapes, Grid3X3, Wind, Music, Hash, Volume2, Timer, BarChart3 } from "lucide-react";
 import { usePlayStats } from "@/hooks/usePlayStats";
 
 interface Settings {
-  worlds: { color: boolean; shape: boolean; pattern: boolean; motion: boolean; music: boolean };
+  worlds: { color: boolean; shape: boolean; pattern: boolean; motion: boolean; music: boolean; number: boolean };
   sessionMinutes: number;
   calmMode: boolean;
   soundEnabled: boolean;
@@ -24,6 +24,7 @@ const WORLD_COLORS: Record<string, string> = {
   pattern: "bg-sunny",
   motion: "bg-sky",
   music: "bg-peach",
+  number: "bg-mint",
 };
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -48,6 +49,7 @@ const ParentDashboard = ({ onBack, settings, onSettingsChange }: ParentDashboard
     { key: "pattern" as const, label: "Pattern World", icon: Grid3X3, color: "bg-sunny" },
     { key: "motion" as const, label: "Motion World", icon: Wind, color: "bg-sky" },
     { key: "music" as const, label: "Music World", icon: Music, color: "bg-peach" },
+    { key: "number" as const, label: "Number World", icon: Hash, color: "bg-mint" },
   ];
 
   const maxTaps = Math.max(...stats.worldStats.map((s) => s.count), 1);
