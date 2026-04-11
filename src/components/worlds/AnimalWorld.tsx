@@ -18,11 +18,13 @@ const ANIMALS = [
 
 interface AnimalWorldProps {
   calmMode?: boolean;
+  onProgress?: (uniqueAnimals: number) => void;
 }
 
-const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
+const AnimalWorld = ({ calmMode = false, onProgress }: AnimalWorldProps) => {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [bouncing, setBouncing] = useState<Set<number>>(new Set());
+  const discoveredRef = useRef(new Set<string>());
   const audioCtxRef = useRef<AudioContext | null>(null);
   const { trackEvent, flush } = useAnalytics("animals");
 
@@ -43,7 +45,6 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
       const vol = calmMode ? 0.08 : 0.15;
       const dur = calmMode ? 0.8 : 0.5;
 
-      // Each animal gets a unique sound character
       osc.frequency.setValueAtTime(animal.freq, ctx.currentTime);
       if (animal.name === "Cat") {
         osc.frequency.exponentialRampToValueAtTime(animal.freq * 1.5, ctx.currentTime + 0.1);
@@ -89,11 +90,14 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
   }, []);
 
   useEffect(() => {
-    if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
   }, []);
 
   const handleTap = useCallback(
-    (idx: number, e: React.TouchEvent | React.MouseEvent) => {
+    (idx: number, e: React.PointerEvent) => {
       e.preventDefault();
       e.stopPropagation();
       const animal = ANIMALS[idx];
@@ -102,10 +106,12 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
       if (navigator.vibrate) navigator.vibrate(15);
       trackEvent("tap", undefined, undefined, { animal: animal.name });
 
+      discoveredRef.current.add(animal.name);
+      onProgress?.(discoveredRef.current.size);
+
       setActiveIdx(idx);
       setBouncing((prev) => new Set(prev).add(idx));
 
-      // Speak the name after the sound
       setTimeout(() => speakAnimalName(animal.name), calmMode ? 600 : 350);
 
       setTimeout(() => {
@@ -117,7 +123,7 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
         });
       }, calmMode ? 1200 : 700);
     },
-    [playAnimalSound, speakAnimalName, calmMode, trackEvent]
+    [playAnimalSound, speakAnimalName, calmMode, trackEvent, onProgress]
   );
 
   const cols = typeof window !== "undefined" && window.innerWidth > 600 ? 4 : 3;
@@ -155,8 +161,7 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
               aspectRatio: "1",
               minHeight: "80px",
             }}
-            onClick={(e) => handleTap(idx, e)}
-            onTouchStart={(e) => handleTap(idx, e)}
+            onPointerDown={(e) => handleTap(idx, e)}
             aria-label={`${animal.name} — ${animal.sound}`}
           >
             <span
@@ -175,13 +180,10 @@ const AnimalWorld = ({ calmMode = false }: AnimalWorldProps) => {
               {animal.name}
             </span>
 
-            {/* Sound label popup */}
             {activeIdx === idx && (
               <div
                 className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none z-10"
-                style={{
-                  animation: `slide-up 0.3s ease-out forwards`,
-                }}
+                style={{ animation: `slide-up 0.3s ease-out forwards` }}
               >
                 <span
                   className="font-nunito font-extrabold text-sm px-3 py-1 rounded-full whitespace-nowrap"
