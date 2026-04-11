@@ -146,10 +146,10 @@ const Index = () => {
   if (view !== "home") {
     return (
       <div
-        className="relative"
+        className="fixed inset-0"
         style={{
           opacity: transitioning ? 0 : 1,
-          transform: transitioning ? "scale(0.97)" : "scale(1)",
+          transform: transitioning ? "scale(0.97)" : "none",
           transition: "opacity 0.2s ease-out, transform 0.2s ease-out",
         }}
         onTouchStart={swipeHandlers.onTouchStart}
