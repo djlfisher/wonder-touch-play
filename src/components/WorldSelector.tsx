@@ -19,7 +19,7 @@ const worlds = [
   { key: "number" as WorldType, label: "Numbers", icon: Hash, bg: "bg-mint", description: "Tap & count" },
   { key: "alphabet" as WorldType, label: "Letters", icon: Type, bg: "bg-sunny", description: "Tap & learn" },
   { key: "colormix" as WorldType, label: "Mixing", icon: Blend, bg: "bg-lavender", description: "Drag & mix" },
-  { key: "animals" as WorldType, label: "Animals", icon: Cat, bg: "bg-peach", description: "Tap & hear" },
+  { key: "animals" as WorldType, label: "Animals", icon: Cat, bg: "bg-coral", description: "Tap & hear" },
 ];
 
 const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true }: WorldSelectorProps) => {
@@ -27,70 +27,78 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
   const navigate = useNavigate();
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6"
-         style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top, 1.5rem))", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))" }}>
-      <div className="text-center mb-10 animate-slide-up">
-        <h1 className="text-3xl font-nunito font-extrabold text-foreground mb-2">
-          Little Explorer
-        </h1>
-        <p className="text-muted-foreground font-nunito text-sm">Touch & Discover</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-10">
-        {available.map((world, i) => (
-          <button
-            key={world.key}
-            onClick={() => onSelect(world.key)}
-            className={`${world.bg} rounded-3xl p-6 flex flex-col items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform duration-150`}
-            style={{
-              animationDelay: `${i * 0.1}s`,
-              animation: "slide-up 0.4s ease-out forwards",
-              opacity: 0,
-              minHeight: "120px",
-              minWidth: "120px",
-            }}
-            aria-label={`Open ${world.label} world — ${world.description}`}
-          >
-            <world.icon size={36} className="text-primary-foreground" />
-            <span className="font-nunito font-bold text-primary-foreground text-lg">
-              {world.label}
-            </span>
-            <span className="font-nunito text-primary-foreground/70 text-xs">
-              {world.description}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Parent controls — only visible after parent gate */}
-      {parentUnlocked && (
-        <div className="flex items-center gap-3 animate-fade-in">
-          <button
-            onClick={onSettings}
-            className="flex items-center gap-2 px-5 py-3 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
-            style={{ minHeight: "48px" }}
-            aria-label="Open parent settings"
-          >
-            <Settings size={18} />
-            <span className="font-nunito font-semibold text-sm">Parent Settings</span>
-          </button>
-          <button
-            onClick={() => navigate("/install")}
-            className="flex items-center gap-2 px-5 py-3 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
-            style={{ minHeight: "48px" }}
-            aria-label="Install app"
-          >
-            <Download size={18} />
-            <span className="font-nunito font-semibold text-sm">Install</span>
-          </button>
+    <div
+      className="fixed inset-0 bg-background overflow-auto"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top, 1rem))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom, 1rem))",
+      }}
+    >
+      <div className="min-h-full flex flex-col items-center px-4 py-4">
+        {/* Header — compact */}
+        <div className="text-center mb-5 animate-slide-up shrink-0">
+          <h1 className="text-2xl font-nunito font-extrabold text-foreground mb-1">
+            Little Explorer
+          </h1>
+          <p className="text-muted-foreground font-nunito text-xs">Touch & Discover</p>
         </div>
-      )}
 
-      {!parentUnlocked && (
-        <p className="text-muted-foreground/30 text-xs font-nunito mt-4">
-          Adults: hold 3 fingers for settings
-        </p>
-      )}
+        {/* World grid — 3 columns, compact cards */}
+        <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-5 shrink-0">
+          {available.map((world, i) => (
+            <button
+              key={world.key}
+              onClick={() => onSelect(world.key)}
+              className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 shadow-md active:scale-93 transition-transform duration-150`}
+              style={{
+                animationDelay: `${i * 0.06}s`,
+                animation: "slide-up 0.35s ease-out forwards",
+                opacity: 0,
+                aspectRatio: "1",
+              }}
+              aria-label={`Open ${world.label} world — ${world.description}`}
+            >
+              <world.icon size={28} className="text-primary-foreground" />
+              <span className="font-nunito font-bold text-primary-foreground text-sm leading-tight">
+                {world.label}
+              </span>
+              <span className="font-nunito text-primary-foreground/60 text-[10px] leading-tight">
+                {world.description}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Parent controls */}
+        {parentUnlocked && (
+          <div className="flex items-center gap-2 animate-fade-in shrink-0 mt-auto pb-2">
+            <button
+              onClick={onSettings}
+              className="flex items-center gap-2 px-4 py-2.5 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
+              style={{ minHeight: "44px" }}
+              aria-label="Open parent settings"
+            >
+              <Settings size={16} />
+              <span className="font-nunito font-semibold text-xs">Settings</span>
+            </button>
+            <button
+              onClick={() => navigate("/install")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
+              style={{ minHeight: "44px" }}
+              aria-label="Install app"
+            >
+              <Download size={16} />
+              <span className="font-nunito font-semibold text-xs">Install</span>
+            </button>
+          </div>
+        )}
+
+        {!parentUnlocked && (
+          <p className="text-muted-foreground/30 text-xs font-nunito mt-auto pb-2">
+            Adults: hold 3 fingers for settings
+          </p>
+        )}
+      </div>
     </div>
   );
 };
