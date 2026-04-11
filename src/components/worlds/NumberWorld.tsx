@@ -34,6 +34,7 @@ interface CountObject {
 
 interface NumberWorldProps {
   calmMode?: boolean;
+  onProgress?: (count: number) => void;
 }
 
 const speakNumber = (n: number) => {
@@ -43,7 +44,6 @@ const speakNumber = (n: number) => {
     utterance.rate = 0.8;
     utterance.pitch = 1.3;
     utterance.volume = 0.8;
-    // Prefer a friendly voice
     const voices = window.speechSynthesis.getVoices();
     const friendly = voices.find(
       (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")
@@ -110,7 +110,7 @@ const ObjectSVG = ({ shape, color, size }: { shape: string; color: string; size:
   }
 };
 
-const NumberWorld = ({ calmMode = false }: NumberWorldProps) => {
+const NumberWorld = ({ calmMode = false, onProgress }: NumberWorldProps) => {
   const palette = calmMode ? CALM_COLORS : OBJECT_COLORS;
   const [objects, setObjects] = useState<CountObject[]>([]);
   const [count, setCount] = useState(0);
@@ -121,70 +121,53 @@ const NumberWorld = ({ calmMode = false }: NumberWorldProps) => {
 
   useEffect(() => () => { flush(); }, [flush]);
 
-  // Preload speech synthesis voices
   useEffect(() => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
   }, []);
 
-  const handleTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleTap = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
 
-    const addAtPoint = (cx: number, cy: number) => {
-      const id = objId.current++;
-      const size = 50 + Math.random() * 30;
-      const newObj: CountObject = {
-        id,
-        x: cx - size / 2,
-        y: cy - size / 2,
-        color: palette[Math.floor(Math.random() * palette.length)],
-        shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
-        size,
-        rotation: Math.random() * 30 - 15,
-      };
-
-      const maxObjects = calmMode ? 10 : 20;
-      setObjects((prev) => {
-        if (prev.length >= maxObjects) return [newObj];
-        return [...prev, newObj];
-      });
-
-      setCount((prev) => {
-        const next = prev >= maxObjects ? 1 : prev + 1;
-
-        // Speak the number
-        speakNumber(next);
-        playSound("pop");
-        if (navigator.vibrate) navigator.vibrate(10);
-        trackEvent("tap", cx, cy, { count: next });
-
-        // Flash the number display
-        setShowNumber(true);
-        if (numberTimer.current) clearTimeout(numberTimer.current);
-        numberTimer.current = setTimeout(() => setShowNumber(false), 2000);
-
-        // Reset when we wrap
-        if (next === 1) {
-          setObjects([newObj]);
-        }
-
-        return next;
-      });
+    const id = objId.current++;
+    const size = 50 + Math.random() * 30;
+    const newObj: CountObject = {
+      id,
+      x: cx - size / 2,
+      y: cy - size / 2,
+      color: palette[Math.floor(Math.random() * palette.length)],
+      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+      size,
+      rotation: Math.random() * 30 - 15,
     };
 
-    if ("touches" in e) {
-      for (let i = 0; i < e.touches.length; i++) {
-        addAtPoint(
-          e.touches[i].clientX - rect.left,
-          e.touches[i].clientY - rect.top
-        );
-      }
-    } else {
-      addAtPoint(e.clientX - rect.left, e.clientY - rect.top);
-    }
-  }, [palette, calmMode, trackEvent]);
+    const maxObjects = calmMode ? 10 : 20;
+    setObjects((prev) => {
+      if (prev.length >= maxObjects) return [newObj];
+      return [...prev, newObj];
+    });
+
+    setCount((prev) => {
+      const next = prev >= maxObjects ? 1 : prev + 1;
+      speakNumber(next);
+      playSound("pop");
+      if (navigator.vibrate) navigator.vibrate(10);
+      trackEvent("tap", cx, cy, { count: next });
+      onProgress?.(next);
+
+      setShowNumber(true);
+      if (numberTimer.current) clearTimeout(numberTimer.current);
+      numberTimer.current = setTimeout(() => setShowNumber(false), 2000);
+
+      if (next === 1) setObjects([newObj]);
+      return next;
+    });
+  }, [palette, calmMode, trackEvent, onProgress]);
 
   return (
     <div
@@ -194,12 +177,10 @@ const NumberWorld = ({ calmMode = false }: NumberWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleTap}
-      onClick={handleTap}
+      onPointerDown={handleTap}
       role="application"
       aria-label="Number World — tap to count objects"
     >
-      {/* Count display */}
       <div
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 flex flex-col items-center transition-all"
         style={{
@@ -221,7 +202,6 @@ const NumberWorld = ({ calmMode = false }: NumberWorldProps) => {
         </span>
       </div>
 
-      {/* Objects */}
       {objects.map((obj) => (
         <div
           key={obj.id}
@@ -238,7 +218,6 @@ const NumberWorld = ({ calmMode = false }: NumberWorldProps) => {
         </div>
       ))}
 
-      {/* Empty state hint */}
       {objects.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-4 opacity-30">

@@ -24,6 +24,7 @@ interface Shape {
 
 interface ShapeWorldProps {
   calmMode?: boolean;
+  onProgress?: () => void;
 }
 
 const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: number }) => {
@@ -54,7 +55,7 @@ const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: nu
   }
 };
 
-const ShapeWorld = ({ calmMode = false }: ShapeWorldProps) => {
+const ShapeWorld = ({ calmMode = false, onProgress }: ShapeWorldProps) => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const shapeId = useRef(0);
   const { trackEvent, flush } = useAnalytics("shape");
@@ -78,21 +79,18 @@ const ShapeWorld = ({ calmMode = false }: ShapeWorldProps) => {
     playSound("pop");
     if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", x, y, { shape: newShape.type, color: newShape.color });
-  }, [calmMode, trackEvent]);
+    onProgress?.();
+  }, [calmMode, trackEvent, onProgress]);
 
-  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleInteraction = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    if ("touches" in e) {
-      for (let i = 0; i < e.touches.length; i++) {
-        addShape(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
-      }
-    } else {
-      addShape(e.clientX - rect.left, e.clientY - rect.top);
-    }
+    addShape(e.clientX - rect.left, e.clientY - rect.top);
   }, [addShape]);
 
-  const handleShapeTap = useCallback((id: number) => {
+  const handleShapeTap = useCallback((id: number, e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     setShapes((prev) =>
       prev.map((s) =>
         s.id === id
@@ -110,8 +108,7 @@ const ShapeWorld = ({ calmMode = false }: ShapeWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleInteraction}
-      onClick={handleInteraction}
+      onPointerDown={handleInteraction}
       role="application"
       aria-label="Shape World — tap to create shapes"
     >
@@ -130,8 +127,7 @@ const ShapeWorld = ({ calmMode = false }: ShapeWorldProps) => {
             transition: "width 0.5s, height 0.5s, transform 0.5s",
           }}
           viewBox={`0 0 ${shape.size} ${shape.size}`}
-          onClick={(e) => { e.stopPropagation(); handleShapeTap(shape.id); }}
-          onTouchStart={(e) => { e.stopPropagation(); handleShapeTap(shape.id); }}
+          onPointerDown={(e) => handleShapeTap(shape.id, e)}
         >
           <ShapeSVG type={shape.type} color={shape.color} size={shape.size} />
         </svg>

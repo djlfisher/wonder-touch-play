@@ -33,9 +33,10 @@ interface Bloom {
 
 interface ColorWorldProps {
   calmMode?: boolean;
+  onProgress?: () => void;
 }
 
-const ColorWorld = ({ calmMode = false }: ColorWorldProps) => {
+const ColorWorld = ({ calmMode = false, onProgress }: ColorWorldProps) => {
   const palette = calmMode ? CALM_COLORS : COLORS;
   const [bgColor, setBgColor] = useState(palette[0]);
   const [blooms, setBlooms] = useState<Bloom[]>([]);
@@ -52,6 +53,7 @@ const ColorWorld = ({ calmMode = false }: ColorWorldProps) => {
     playSound("chime");
     if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", x, y, { color: newColor });
+    onProgress?.();
 
     const id = bloomId.current++;
     const maxBlooms = calmMode ? 4 : 8;
@@ -59,19 +61,12 @@ const ColorWorld = ({ calmMode = false }: ColorWorldProps) => {
 
     const dur = calmMode ? 3000 : 1500;
     setTimeout(() => setBlooms((prev) => prev.filter((b) => b.id !== id)), dur);
-  }, [palette, calmMode, trackEvent]);
+  }, [palette, calmMode, trackEvent, onProgress]);
 
-  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleInteraction = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    if ("touches" in e) {
-      // Multi-touch support
-      for (let i = 0; i < e.touches.length; i++) {
-        addBloom(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
-      }
-    } else {
-      addBloom(e.clientX - rect.left, e.clientY - rect.top);
-    }
+    addBloom(e.clientX - rect.left, e.clientY - rect.top);
   }, [addBloom]);
 
   const bloomDuration = calmMode ? "3s" : "1.5s";
@@ -85,8 +80,7 @@ const ColorWorld = ({ calmMode = false }: ColorWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleInteraction}
-      onClick={handleInteraction}
+      onPointerDown={handleInteraction}
       role="application"
       aria-label="Color World — tap to create color blooms"
     >

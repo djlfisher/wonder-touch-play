@@ -34,6 +34,7 @@ interface LetterObj {
 
 interface AlphabetWorldProps {
   calmMode?: boolean;
+  onProgress?: (uniqueLetters: number) => void;
 }
 
 const speakLetter = (letter: string) => {
@@ -52,11 +53,12 @@ const speakLetter = (letter: string) => {
   }
 };
 
-const AlphabetWorld = ({ calmMode = false }: AlphabetWorldProps) => {
+const AlphabetWorld = ({ calmMode = false, onProgress }: AlphabetWorldProps) => {
   const palette = calmMode ? CALM_COLORS : COLORS;
   const [letters, setLetters] = useState<LetterObj[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showLetter, setShowLetter] = useState(false);
+  const discoveredRef = useRef(new Set<string>());
   const objId = useRef(0);
   const displayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { trackEvent, flush } = useAnalytics("alphabet");
@@ -64,54 +66,52 @@ const AlphabetWorld = ({ calmMode = false }: AlphabetWorldProps) => {
   useEffect(() => () => { flush(); }, [flush]);
 
   useEffect(() => {
-    if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
   }, []);
 
   const handleTap = useCallback(
-    (e: React.TouchEvent | React.MouseEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
 
-      const addAt = (cx: number, cy: number) => {
-        const id = objId.current++;
-        const size = 48 + Math.random() * 32;
-        const letter = ALPHABET[currentIdx % ALPHABET.length];
-        const color = palette[currentIdx % palette.length];
+      const id = objId.current++;
+      const size = 48 + Math.random() * 32;
+      const letter = ALPHABET[currentIdx % ALPHABET.length];
+      const color = palette[currentIdx % palette.length];
 
-        const obj: LetterObj = {
-          id,
-          letter,
-          x: cx - size / 2,
-          y: cy - size / 2,
-          color,
-          size,
-          rotation: Math.random() * 20 - 10,
-        };
-
-        const maxLetters = calmMode ? 10 : 20;
-        setLetters((prev) => [...prev.slice(-(maxLetters - 1)), obj]);
-
-        speakLetter(letter);
-        playSound("chime");
-        if (navigator.vibrate) navigator.vibrate(10);
-        trackEvent("tap", cx, cy, { letter });
-
-        setShowLetter(true);
-        if (displayTimer.current) clearTimeout(displayTimer.current);
-        displayTimer.current = setTimeout(() => setShowLetter(false), 2000);
-
-        setCurrentIdx((i) => (i + 1) % ALPHABET.length);
+      const obj: LetterObj = {
+        id,
+        letter,
+        x: cx - size / 2,
+        y: cy - size / 2,
+        color,
+        size,
+        rotation: Math.random() * 20 - 10,
       };
 
-      if ("touches" in e) {
-        for (let i = 0; i < e.touches.length; i++) {
-          addAt(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
-        }
-      } else {
-        addAt(e.clientX - rect.left, e.clientY - rect.top);
-      }
+      const maxLetters = calmMode ? 10 : 20;
+      setLetters((prev) => [...prev.slice(-(maxLetters - 1)), obj]);
+
+      discoveredRef.current.add(letter);
+      onProgress?.(discoveredRef.current.size);
+
+      speakLetter(letter);
+      playSound("chime");
+      if (navigator.vibrate) navigator.vibrate(10);
+      trackEvent("tap", cx, cy, { letter });
+
+      setShowLetter(true);
+      if (displayTimer.current) clearTimeout(displayTimer.current);
+      displayTimer.current = setTimeout(() => setShowLetter(false), 2000);
+
+      setCurrentIdx((i) => (i + 1) % ALPHABET.length);
     },
-    [palette, calmMode, currentIdx, trackEvent]
+    [palette, calmMode, currentIdx, trackEvent, onProgress]
   );
 
   const currentLetter = ALPHABET[currentIdx === 0 && letters.length > 0 ? ALPHABET.length - 1 : (currentIdx - 1 + ALPHABET.length) % ALPHABET.length];
@@ -124,12 +124,10 @@ const AlphabetWorld = ({ calmMode = false }: AlphabetWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleTap}
-      onClick={handleTap}
+      onPointerDown={handleTap}
       role="application"
       aria-label="Alphabet World — tap to reveal letters"
     >
-      {/* Big letter display */}
       <div
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 transition-all"
         style={{
@@ -151,7 +149,6 @@ const AlphabetWorld = ({ calmMode = false }: AlphabetWorldProps) => {
         </span>
       </div>
 
-      {/* Scattered letters */}
       {letters.map((obj) => (
         <div
           key={obj.id}
@@ -178,7 +175,6 @@ const AlphabetWorld = ({ calmMode = false }: AlphabetWorldProps) => {
         </div>
       ))}
 
-      {/* Empty state */}
       {letters.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-4 opacity-30">

@@ -26,9 +26,10 @@ interface FloatingObject {
 
 interface MotionWorldProps {
   calmMode?: boolean;
+  onProgress?: () => void;
 }
 
-const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
+const MotionWorld = ({ calmMode = false, onProgress }: MotionWorldProps) => {
   const [objects, setObjects] = useState<FloatingObject[]>([]);
   const animRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,12 +84,13 @@ const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
     return () => cancelAnimationFrame(animRef.current);
   }, []);
 
-  const handleObjectTap = useCallback((id: number, e: React.TouchEvent | React.MouseEvent) => {
+  const handleObjectTap = useCallback((id: number, e: React.PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
     playSound("sparkle");
     if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("object_tap", undefined, undefined, { objectId: id });
+    onProgress?.();
     const pushForce = calmMode ? 1.5 : 3;
     setObjects((prev) =>
       prev.map((obj) =>
@@ -104,9 +106,9 @@ const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
           : obj
       )
     );
-  }, [calmMode, trackEvent]);
+  }, [calmMode, trackEvent, onProgress]);
 
-  const handleBgTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleBgTap = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     const pushForce = calmMode ? 0.7 : 1.5;
     setObjects((prev) =>
@@ -127,8 +129,7 @@ const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleBgTap}
-      onClick={handleBgTap}
+      onPointerDown={handleBgTap}
       role="application"
       aria-label="Motion World — tap floating objects"
     >
@@ -150,8 +151,7 @@ const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
             transition: `box-shadow 0.5s, background-color 0.3s, transform 0.3s`,
             opacity: calmMode ? 0.75 : 1,
           }}
-          onClick={(e) => handleObjectTap(obj.id, e)}
-          onTouchStart={(e) => handleObjectTap(obj.id, e)}
+          onPointerDown={(e) => handleObjectTap(obj.id, e)}
         />
       ))}
     </div>

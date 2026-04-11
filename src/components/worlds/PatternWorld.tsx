@@ -11,9 +11,10 @@ const PATTERNS = [
 
 interface PatternWorldProps {
   calmMode?: boolean;
+  onProgress?: () => void;
 }
 
-const PatternWorld = ({ calmMode = false }: PatternWorldProps) => {
+const PatternWorld = ({ calmMode = false, onProgress }: PatternWorldProps) => {
   const [patternIdx, setPatternIdx] = useState(0);
   const [phase, setPhase] = useState(0);
   const [taps, setTaps] = useState(0);
@@ -30,16 +31,17 @@ const PatternWorld = ({ calmMode = false }: PatternWorldProps) => {
     return () => clearInterval(interval);
   }, [calmMode]);
 
-  const handleTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleTap = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     setTaps((t) => t + 1);
     playSound("tone");
     if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", undefined, undefined, { pattern: PATTERNS[patternIdx].name });
+    onProgress?.();
     if (taps % 5 === 4) {
       setPatternIdx((i) => (i + 1) % PATTERNS.length);
     }
-  }, [taps, patternIdx, trackEvent]);
+  }, [taps, patternIdx, trackEvent, onProgress]);
 
   const renderDots = () => {
     const dots = [];
@@ -154,8 +156,7 @@ const PatternWorld = ({ calmMode = false }: PatternWorldProps) => {
         touchAction: "manipulation",
         overscrollBehavior: "none",
       }}
-      onTouchStart={handleTap}
-      onClick={handleTap}
+      onPointerDown={handleTap}
       role="application"
       aria-label="Pattern World — tap to change patterns"
     >

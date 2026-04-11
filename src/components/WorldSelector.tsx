@@ -1,5 +1,6 @@
-import { Palette, Shapes, Grid3X3, Wind, Music, Hash, Type, Blend, Cat, Settings, Download } from "lucide-react";
+import { Palette, Shapes, Grid3X3, Wind, Music, Hash, Type, Blend, Cat, Star, Settings, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getStars, type WorldProgress } from "@/hooks/useProgress";
 
 type WorldType = "color" | "shape" | "pattern" | "motion" | "music" | "number" | "alphabet" | "colormix" | "animals";
 
@@ -8,6 +9,7 @@ interface WorldSelectorProps {
   onSettings: () => void;
   enabledWorlds: Record<WorldType, boolean>;
   parentUnlocked?: boolean;
+  progress?: WorldProgress;
 }
 
 const worlds = [
@@ -22,7 +24,18 @@ const worlds = [
   { key: "animals" as WorldType, label: "Animals", icon: Cat, bg: "bg-coral", description: "Tap & hear" },
 ];
 
-const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true }: WorldSelectorProps) => {
+const StarBadges = ({ count }: { count: number }) => {
+  if (count === 0) return null;
+  return (
+    <div className="flex gap-0.5 justify-center">
+      {Array.from({ length: count }, (_, i) => (
+        <Star key={i} size={10} className="text-primary-foreground fill-primary-foreground" />
+      ))}
+    </div>
+  );
+};
+
+const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true, progress }: WorldSelectorProps) => {
   const available = worlds.filter((w) => enabledWorlds[w.key]);
   const navigate = useNavigate();
 
@@ -35,7 +48,6 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
       }}
     >
       <div className="min-h-full flex flex-col items-center px-4 py-4">
-        {/* Header — compact */}
         <div className="text-center mb-5 animate-slide-up shrink-0">
           <h1 className="text-2xl font-nunito font-extrabold text-foreground mb-1">
             Little Explorer
@@ -43,33 +55,35 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
           <p className="text-muted-foreground font-nunito text-xs">Touch & Discover</p>
         </div>
 
-        {/* World grid — 3 columns, compact cards */}
         <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-5 shrink-0">
-          {available.map((world, i) => (
-            <button
-              key={world.key}
-              onClick={() => onSelect(world.key)}
-              className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 shadow-md active:scale-93 transition-transform duration-150`}
-              style={{
-                animationDelay: `${i * 0.06}s`,
-                animation: "slide-up 0.35s ease-out forwards",
-                opacity: 0,
-                aspectRatio: "1",
-              }}
-              aria-label={`Open ${world.label} world — ${world.description}`}
-            >
-              <world.icon size={28} className="text-primary-foreground" />
-              <span className="font-nunito font-bold text-primary-foreground text-sm leading-tight">
-                {world.label}
-              </span>
-              <span className="font-nunito text-primary-foreground/60 text-[10px] leading-tight">
-                {world.description}
-              </span>
-            </button>
-          ))}
+          {available.map((world, i) => {
+            const stars = progress ? getStars(world.key, progress[world.key]) : 0;
+            return (
+              <button
+                key={world.key}
+                onClick={() => onSelect(world.key)}
+                className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-93 transition-transform duration-150 relative`}
+                style={{
+                  animationDelay: `${i * 0.06}s`,
+                  animation: "slide-up 0.35s ease-out forwards",
+                  opacity: 0,
+                  aspectRatio: "1",
+                }}
+                aria-label={`Open ${world.label} world — ${world.description}${stars > 0 ? ` — ${stars} stars` : ""}`}
+              >
+                <world.icon size={26} className="text-primary-foreground" />
+                <span className="font-nunito font-bold text-primary-foreground text-sm leading-tight">
+                  {world.label}
+                </span>
+                <span className="font-nunito text-primary-foreground/60 text-[10px] leading-tight">
+                  {world.description}
+                </span>
+                <StarBadges count={stars} />
+              </button>
+            );
+          })}
         </div>
 
-        {/* Parent controls */}
         {parentUnlocked && (
           <div className="flex items-center gap-2 animate-fade-in shrink-0 mt-auto pb-2">
             <button

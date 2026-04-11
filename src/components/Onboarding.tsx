@@ -27,7 +27,6 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     <div
       className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center p-8"
       onClick={next}
-      onTouchStart={next}
     >
       <div className="text-center animate-fade-in" key={step}>
         <div className="text-7xl mb-6">{current.emoji}</div>
