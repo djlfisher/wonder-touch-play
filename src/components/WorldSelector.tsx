@@ -48,7 +48,7 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
       }}
     >
       <div className="min-h-full flex flex-col items-center px-4 py-4">
-        <div className="text-center mb-5 animate-slide-up shrink-0">
+        <div className="text-center mb-5 shrink-0">
           <h1 className="text-2xl font-nunito font-extrabold text-foreground mb-1">
             Little Explorer
           </h1>
