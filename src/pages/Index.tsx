@@ -9,6 +9,7 @@ import MusicWorld from "@/components/worlds/MusicWorld";
 import NumberWorld from "@/components/worlds/NumberWorld";
 import AlphabetWorld from "@/components/worlds/AlphabetWorld";
 import ColorMixWorld from "@/components/worlds/ColorMixWorld";
+import AnimalWorld from "@/components/worlds/AnimalWorld";
 import SessionTimer from "@/components/SessionTimer";
 import Onboarding from "@/components/Onboarding";
 import { setSoundEnabled, setVolumeMultiplier } from "@/lib/sounds";
@@ -16,13 +17,13 @@ import { useParentGate } from "@/hooks/useParentGate";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import { X } from "lucide-react";
 
-type WorldKey = "color" | "shape" | "pattern" | "motion" | "music" | "number" | "alphabet" | "colormix";
+type WorldKey = "color" | "shape" | "pattern" | "motion" | "music" | "number" | "alphabet" | "colormix" | "animals";
 type View = "home" | "settings" | WorldKey;
 
 const STORAGE_KEY = "le_settings";
 
 const defaultSettings = {
-  worlds: { color: true, shape: true, pattern: true, motion: true, music: true, number: true, alphabet: true, colormix: true },
+  worlds: { color: true, shape: true, pattern: true, motion: true, music: true, number: true, alphabet: true, colormix: true, animals: true },
   sessionMinutes: 15,
   calmMode: false,
   soundEnabled: true,
@@ -47,7 +48,7 @@ const Index = () => {
   const { unlocked } = useParentGate();
 
   const enabledWorldKeys = useMemo(() => {
-    const keys: WorldKey[] = ["color", "shape", "pattern", "motion", "music", "number", "alphabet", "colormix"];
+    const keys: WorldKey[] = ["color", "shape", "pattern", "motion", "music", "number", "alphabet", "colormix", "animals"];
     return keys.filter((k) => settings.worlds[k]);
   }, [settings.worlds]);
 
@@ -94,6 +95,7 @@ const Index = () => {
       case "number": return <NumberWorld calmMode={calm} />;
       case "alphabet": return <AlphabetWorld calmMode={calm} />;
       case "colormix": return <ColorMixWorld calmMode={calm} />;
+      case "animals": return <AnimalWorld calmMode={calm} />;
       default: return null;
     }
   };
