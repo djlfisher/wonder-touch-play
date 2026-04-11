@@ -1,7 +1,7 @@
-import { Palette, Shapes, Grid3X3, Wind, Music, Hash, Settings, Download } from "lucide-react";
+import { Palette, Shapes, Grid3X3, Wind, Music, Hash, Type, Settings, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type WorldType = "color" | "shape" | "pattern" | "motion" | "music" | "number";
+type WorldType = "color" | "shape" | "pattern" | "motion" | "music" | "number" | "alphabet";
 
 interface WorldSelectorProps {
   onSelect: (world: WorldType) => void;
@@ -17,6 +17,7 @@ const worlds = [
   { key: "motion" as WorldType, label: "Motion", icon: Wind, bg: "bg-sky", description: "Touch & play" },
   { key: "music" as WorldType, label: "Music", icon: Music, bg: "bg-peach", description: "Tap & play" },
   { key: "number" as WorldType, label: "Numbers", icon: Hash, bg: "bg-mint", description: "Tap & count" },
+  { key: "alphabet" as WorldType, label: "Letters", icon: Type, bg: "bg-sunny", description: "Tap & learn" },
 ];
 
 const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true }: WorldSelectorProps) => {
