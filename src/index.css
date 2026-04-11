@@ -8,42 +8,30 @@
   :root {
     --background: 40 50% 97%;
     --foreground: 240 20% 20%;
-
     --card: 0 0% 100%;
     --card-foreground: 240 20% 20%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 240 20% 20%;
-
     --primary: 350 70% 65%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 200 70% 72%;
     --secondary-foreground: 200 60% 20%;
-
     --muted: 40 30% 92%;
     --muted-foreground: 240 10% 50%;
-
     --accent: 160 50% 65%;
     --accent-foreground: 160 40% 15%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 40 30% 88%;
     --input: 40 30% 88%;
     --ring: 350 70% 65%;
-
     --radius: 1.25rem;
-
-    /* Custom tokens */
     --coral: 350 70% 65%;
     --sky: 200 70% 72%;
     --mint: 160 50% 65%;
     --lavender: 270 60% 75%;
     --sunny: 45 90% 65%;
     --peach: 20 80% 75%;
-
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -52,6 +40,34 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 20% 12%;
+    --foreground: 40 30% 90%;
+    --card: 240 18% 16%;
+    --card-foreground: 40 30% 90%;
+    --popover: 240 18% 16%;
+    --popover-foreground: 40 30% 90%;
+    --primary: 350 60% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 50% 45%;
+    --secondary-foreground: 200 50% 90%;
+    --muted: 240 15% 20%;
+    --muted-foreground: 240 10% 60%;
+    --accent: 160 40% 40%;
+    --accent-foreground: 160 30% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 15% 25%;
+    --input: 240 15% 25%;
+    --ring: 350 60% 55%;
+    --coral: 350 55% 50%;
+    --sky: 200 50% 50%;
+    --mint: 160 40% 45%;
+    --lavender: 270 45% 55%;
+    --sunny: 45 70% 50%;
+    --peach: 20 60% 55%;
   }
 }
 
@@ -72,7 +88,7 @@
 
 @layer utilities {
   .touch-target {
-    @apply min-w-[80px] min-h-[80px] flex items-center justify-center;
+    @apply min-w-[48px] min-h-[48px] flex items-center justify-center;
   }
 }
 
@@ -131,4 +147,27 @@
 
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode preference */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: 240 20% 12%;
+    --foreground: 40 30% 90%;
+    --card: 240 18% 16%;
+    --card-foreground: 40 30% 90%;
+    --muted: 240 15% 20%;
+    --muted-foreground: 240 10% 60%;
+    --border: 240 15% 25%;
+    --input: 240 15% 25%;
+  }
 }
