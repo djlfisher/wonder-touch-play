@@ -7,6 +7,7 @@ import PatternWorld from "@/components/worlds/PatternWorld";
 import MotionWorld from "@/components/worlds/MotionWorld";
 import MusicWorld from "@/components/worlds/MusicWorld";
 import NumberWorld from "@/components/worlds/NumberWorld";
+import AlphabetWorld from "@/components/worlds/AlphabetWorld";
 import SessionTimer from "@/components/SessionTimer";
 import Onboarding from "@/components/Onboarding";
 import { setSoundEnabled, setVolumeMultiplier } from "@/lib/sounds";
@@ -14,13 +15,13 @@ import { useParentGate } from "@/hooks/useParentGate";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import { X } from "lucide-react";
 
-type WorldKey = "color" | "shape" | "pattern" | "motion" | "music" | "number";
+type WorldKey = "color" | "shape" | "pattern" | "motion" | "music" | "number" | "alphabet";
 type View = "home" | "settings" | WorldKey;
 
 const STORAGE_KEY = "le_settings";
 
 const defaultSettings = {
-  worlds: { color: true, shape: true, pattern: true, motion: true, music: true, number: true },
+  worlds: { color: true, shape: true, pattern: true, motion: true, music: true, number: true, alphabet: true },
   sessionMinutes: 15,
   calmMode: false,
   soundEnabled: true,
@@ -45,7 +46,7 @@ const Index = () => {
   const { unlocked } = useParentGate();
 
   const enabledWorldKeys = useMemo(() => {
-    const keys: WorldKey[] = ["color", "shape", "pattern", "motion", "music", "number"];
+    const keys: WorldKey[] = ["color", "shape", "pattern", "motion", "music", "number", "alphabet"];
     return keys.filter((k) => settings.worlds[k]);
   }, [settings.worlds]);
 
@@ -90,6 +91,7 @@ const Index = () => {
       case "motion": return <MotionWorld calmMode={calm} />;
       case "music": return <MusicWorld calmMode={calm} />;
       case "number": return <NumberWorld calmMode={calm} />;
+      case "alphabet": return <AlphabetWorld calmMode={calm} />;
       default: return null;
     }
   };
