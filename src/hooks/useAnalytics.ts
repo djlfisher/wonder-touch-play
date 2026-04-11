@@ -2,15 +2,6 @@ import { useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 
-const getDeviceId = (): string => {
-  let id = localStorage.getItem("le_device_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("le_device_id", id);
-  }
-  return id;
-};
-
 const getSessionId = (): string | null => {
   return localStorage.getItem("le_session_id");
 };
@@ -48,11 +39,9 @@ export const useAnalytics = (world: string) => {
         metadata: metadata ?? null,
       });
 
-      // Debounce flush to batch rapid interactions
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(flush, 2000);
 
-      // Also flush if batch gets large
       if (batchRef.current.length >= 10) {
         if (timerRef.current) clearTimeout(timerRef.current);
         flush();

@@ -21,6 +21,7 @@ export type Database = {
           display_name: string | null
           id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -28,6 +29,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -137,7 +140,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      requesting_device_id: { Args: never; Returns: string }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
