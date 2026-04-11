@@ -204,21 +204,13 @@ const Index = () => {
   }
 
   return (
-    <div
-      style={{
-        opacity: transitioning ? 0 : 1,
-        transform: transitioning ? "scale(0.97)" : "scale(1)",
-        transition: "opacity 0.2s ease-out, transform 0.2s ease-out",
-      }}
-    >
-      <WorldSelector
-        onSelect={handleSelectWorld}
-        onSettings={() => transitionTo("settings")}
-        enabledWorlds={settings.worlds}
-        parentUnlocked={unlocked}
-        progress={progress}
-      />
-    </div>
+    <WorldSelector
+      onSelect={handleSelectWorld}
+      onSettings={() => transitionTo("settings")}
+      enabledWorlds={settings.worlds}
+      parentUnlocked={unlocked}
+      progress={progress}
+    />
   );
 };
 

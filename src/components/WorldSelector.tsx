@@ -13,15 +13,15 @@ interface WorldSelectorProps {
 }
 
 const worlds = [
-  { key: "color" as WorldType, label: "Colors", icon: Palette, bg: "bg-coral", description: "Tap & bloom" },
-  { key: "shape" as WorldType, label: "Shapes", icon: Shapes, bg: "bg-lavender", description: "Tap & create" },
-  { key: "pattern" as WorldType, label: "Patterns", icon: Grid3X3, bg: "bg-sunny", description: "Touch & flow" },
-  { key: "motion" as WorldType, label: "Motion", icon: Wind, bg: "bg-sky", description: "Touch & play" },
-  { key: "music" as WorldType, label: "Music", icon: Music, bg: "bg-peach", description: "Tap & play" },
-  { key: "number" as WorldType, label: "Numbers", icon: Hash, bg: "bg-mint", description: "Tap & count" },
-  { key: "alphabet" as WorldType, label: "Letters", icon: Type, bg: "bg-sunny", description: "Tap & learn" },
-  { key: "colormix" as WorldType, label: "Mixing", icon: Blend, bg: "bg-lavender", description: "Drag & mix" },
-  { key: "animals" as WorldType, label: "Animals", icon: Cat, bg: "bg-coral", description: "Tap & hear" },
+  { key: "color" as WorldType, label: "Colors", icon: Palette, color: "hsl(350, 70%, 65%)", description: "Tap & bloom" },
+  { key: "shape" as WorldType, label: "Shapes", icon: Shapes, color: "hsl(270, 60%, 75%)", description: "Tap & create" },
+  { key: "pattern" as WorldType, label: "Patterns", icon: Grid3X3, color: "hsl(45, 90%, 65%)", description: "Touch & flow" },
+  { key: "motion" as WorldType, label: "Motion", icon: Wind, color: "hsl(200, 70%, 72%)", description: "Touch & play" },
+  { key: "music" as WorldType, label: "Music", icon: Music, color: "hsl(20, 80%, 75%)", description: "Tap & play" },
+  { key: "number" as WorldType, label: "Numbers", icon: Hash, color: "hsl(160, 50%, 65%)", description: "Tap & count" },
+  { key: "alphabet" as WorldType, label: "Letters", icon: Type, color: "hsl(45, 90%, 65%)", description: "Tap & learn" },
+  { key: "colormix" as WorldType, label: "Mixing", icon: Blend, color: "hsl(270, 60%, 75%)", description: "Drag & mix" },
+  { key: "animals" as WorldType, label: "Animals", icon: Cat, color: "hsl(350, 70%, 65%)", description: "Tap & hear" },
 ];
 
 const StarBadges = ({ count }: { count: number }) => {
@@ -29,7 +29,7 @@ const StarBadges = ({ count }: { count: number }) => {
   return (
     <div className="flex gap-0.5 justify-center">
       {Array.from({ length: count }, (_, i) => (
-        <Star key={i} size={10} className="text-primary-foreground fill-primary-foreground" />
+        <Star key={i} size={10} className="fill-white text-white" />
       ))}
     </div>
   );
@@ -41,41 +41,41 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
 
   return (
     <div
-      className="fixed inset-0 bg-background overflow-auto"
+      className="fixed inset-0 overflow-auto"
       style={{
+        backgroundColor: "hsl(240, 20%, 12%)",
         paddingTop: "max(1rem, env(safe-area-inset-top, 1rem))",
         paddingBottom: "max(1rem, env(safe-area-inset-bottom, 1rem))",
       }}
     >
       <div className="min-h-full flex flex-col items-center px-4 py-4">
-        <div className="text-center mb-5 animate-slide-up shrink-0">
-          <h1 className="text-2xl font-nunito font-extrabold text-foreground mb-1">
+        <div className="text-center mb-5 shrink-0">
+          <h1 className="text-2xl font-nunito font-extrabold text-white mb-1">
             Little Explorer
           </h1>
-          <p className="text-muted-foreground font-nunito text-xs">Touch & Discover</p>
+          <p className="text-white/50 font-nunito text-xs">Touch & Discover</p>
         </div>
 
         <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-5 shrink-0">
-          {available.map((world, i) => {
+          {available.map((world) => {
             const stars = progress ? getStars(world.key, progress[world.key]) : 0;
             return (
               <button
                 key={world.key}
                 onClick={() => onSelect(world.key)}
-                className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-93 transition-transform duration-150 relative`}
+                className="rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-95 transition-transform duration-150 relative"
                 style={{
-                  animationDelay: `${i * 0.06}s`,
-                  animation: "slide-up 0.35s ease-out forwards",
-                  opacity: 0,
-                  aspectRatio: "1",
+                  backgroundColor: world.color,
+                  aspectRatio: "1 / 1",
+                  minHeight: "100px",
                 }}
                 aria-label={`Open ${world.label} world — ${world.description}${stars > 0 ? ` — ${stars} stars` : ""}`}
               >
-                <world.icon size={26} className="text-primary-foreground" />
-                <span className="font-nunito font-bold text-primary-foreground text-sm leading-tight">
+                <world.icon size={26} className="text-white" />
+                <span className="font-nunito font-bold text-white text-sm leading-tight">
                   {world.label}
                 </span>
-                <span className="font-nunito text-primary-foreground/60 text-[10px] leading-tight">
+                <span className="font-nunito text-white/60 text-[10px] leading-tight">
                   {world.description}
                 </span>
                 <StarBadges count={stars} />
@@ -85,11 +85,11 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
         </div>
 
         {parentUnlocked && (
-          <div className="flex items-center gap-2 animate-fade-in shrink-0 mt-auto pb-2">
+          <div className="flex items-center gap-2 shrink-0 mt-auto pb-2">
             <button
               onClick={onSettings}
-              className="flex items-center gap-2 px-4 py-2.5 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
-              style={{ minHeight: "44px" }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full active:scale-95 transition-transform"
+              style={{ minHeight: "44px", backgroundColor: "hsl(240, 15%, 20%)", color: "hsl(240, 10%, 60%)" }}
               aria-label="Open parent settings"
             >
               <Settings size={16} />
@@ -97,8 +97,8 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
             </button>
             <button
               onClick={() => navigate("/install")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-muted rounded-full text-muted-foreground active:scale-95 transition-transform"
-              style={{ minHeight: "44px" }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full active:scale-95 transition-transform"
+              style={{ minHeight: "44px", backgroundColor: "hsl(240, 15%, 20%)", color: "hsl(240, 10%, 60%)" }}
               aria-label="Install app"
             >
               <Download size={16} />
@@ -108,7 +108,7 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
         )}
 
         {!parentUnlocked && (
-          <p className="text-muted-foreground/30 text-xs font-nunito mt-auto pb-2">
+          <p className="text-white/20 text-xs font-nunito mt-auto pb-2">
             Adults: hold 3 fingers for settings
           </p>
         )}
