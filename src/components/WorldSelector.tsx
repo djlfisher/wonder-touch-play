@@ -62,9 +62,8 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
               <button
                 key={world.key}
                 onClick={() => onSelect(world.key)}
-                className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-93 transition-transform duration-150 relative animate-slide-up`}
+                className={`${world.bg} rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-93 transition-transform duration-150 relative`}
                 style={{
-                  animationDelay: `${i * 0.06}s`,
                   aspectRatio: "1",
                 }}
                 aria-label={`Open ${world.label} world — ${world.description}${stars > 0 ? ` — ${stars} stars` : ""}`}
