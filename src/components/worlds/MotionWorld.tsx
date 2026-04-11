@@ -24,24 +24,29 @@ interface FloatingObject {
   glowing: boolean;
 }
 
-const MotionWorld = () => {
+interface MotionWorldProps {
+  calmMode?: boolean;
+}
+
+const MotionWorld = ({ calmMode = false }: MotionWorldProps) => {
   const [objects, setObjects] = useState<FloatingObject[]>([]);
   const animRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const { trackEvent, flush } = useAnalytics("motion");
+  const speedMultiplier = calmMode ? 0.4 : 1;
 
   useEffect(() => () => { flush(); }, [flush]);
 
-  // Initialize floating objects
   useEffect(() => {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const initial: FloatingObject[] = Array.from({ length: 8 }, (_, i) => ({
+    const count = calmMode ? 5 : 8;
+    const initial: FloatingObject[] = Array.from({ length: count }, (_, i) => ({
       id: i,
       x: Math.random() * (w - 80),
       y: Math.random() * (h - 80),
-      vx: (Math.random() - 0.5) * 0.8,
-      vy: (Math.random() - 0.5) * 0.8,
+      vx: (Math.random() - 0.5) * 0.8 * speedMultiplier,
+      vy: (Math.random() - 0.5) * 0.8 * speedMultiplier,
       size: 50 + Math.random() * 40,
       color: COLORS[i % COLORS.length],
       shape: Math.random() > 0.5 ? "circle" : "rounded-square",
@@ -49,9 +54,8 @@ const MotionWorld = () => {
       glowing: false,
     }));
     setObjects(initial);
-  }, []);
+  }, [calmMode]);
 
-  // Animation loop
   useEffect(() => {
     const animate = () => {
       setObjects((prev) =>
@@ -59,19 +63,15 @@ const MotionWorld = () => {
           let { x, y, vx, vy } = obj;
           const w = window.innerWidth;
           const h = window.innerHeight;
-
           x += vx;
           y += vy;
-
           if (x <= 0 || x >= w - obj.size) vx = -vx;
           if (y <= 0 || y >= h - obj.size) vy = -vy;
-
           return {
             ...obj,
             x: Math.max(0, Math.min(w - obj.size, x)),
             y: Math.max(0, Math.min(h - obj.size, y)),
-            vx,
-            vy,
+            vx, vy,
             scale: obj.glowing ? obj.scale * 0.98 + 1 * 0.02 : obj.scale,
             glowing: obj.scale > 1.05 ? obj.glowing : false,
           };
@@ -87,7 +87,9 @@ const MotionWorld = () => {
     e.stopPropagation();
     e.preventDefault();
     playSound("sparkle");
+    if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("object_tap", undefined, undefined, { objectId: id });
+    const pushForce = calmMode ? 1.5 : 3;
     setObjects((prev) =>
       prev.map((obj) =>
         obj.id === id
@@ -95,39 +97,45 @@ const MotionWorld = () => {
               ...obj,
               scale: 1.4,
               glowing: true,
-              vx: (Math.random() - 0.5) * 3,
-              vy: (Math.random() - 0.5) * 3,
+              vx: (Math.random() - 0.5) * pushForce,
+              vy: (Math.random() - 0.5) * pushForce,
               color: COLORS[Math.floor(Math.random() * COLORS.length)],
             }
           : obj
       )
     );
-  }, []);
+  }, [calmMode, trackEvent]);
 
   const handleBgTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    // Give all objects a gentle push
+    const pushForce = calmMode ? 0.7 : 1.5;
     setObjects((prev) =>
       prev.map((obj) => ({
         ...obj,
-        vx: obj.vx + (Math.random() - 0.5) * 1.5,
-        vy: obj.vy + (Math.random() - 0.5) * 1.5,
+        vx: obj.vx + (Math.random() - 0.5) * pushForce,
+        vy: obj.vy + (Math.random() - 0.5) * pushForce,
       }))
     );
-  }, []);
+  }, [calmMode]);
 
   return (
     <div
       ref={containerRef}
       className="fixed inset-0 overflow-hidden cursor-pointer"
-      style={{ backgroundColor: "hsl(220, 30%, 96%)" }}
+      style={{
+        backgroundColor: calmMode ? "hsl(230, 25%, 18%)" : "hsl(220, 30%, 96%)",
+        touchAction: "manipulation",
+        overscrollBehavior: "none",
+      }}
       onTouchStart={handleBgTap}
       onClick={handleBgTap}
+      role="application"
+      aria-label="Motion World — tap floating objects"
     >
       {objects.map((obj) => (
         <div
           key={obj.id}
-          className="absolute transition-transform duration-300"
+          className="absolute"
           style={{
             left: obj.x,
             top: obj.y,
@@ -139,7 +147,8 @@ const MotionWorld = () => {
             boxShadow: obj.glowing
               ? `0 0 30px ${obj.color}, 0 0 60px ${obj.color}`
               : `0 4px 16px rgba(0,0,0,0.08)`,
-            transition: "box-shadow 0.5s, background-color 0.3s",
+            transition: `box-shadow 0.5s, background-color 0.3s, transform 0.3s`,
+            opacity: calmMode ? 0.75 : 1,
           }}
           onClick={(e) => handleObjectTap(obj.id, e)}
           onTouchStart={(e) => handleObjectTap(obj.id, e)}

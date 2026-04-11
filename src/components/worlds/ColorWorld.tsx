@@ -3,14 +3,25 @@ import { playSound } from "@/lib/sounds";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 const COLORS = [
-  "hsl(350, 70%, 65%)", // coral
-  "hsl(200, 70%, 72%)", // sky
-  "hsl(160, 50%, 65%)", // mint
-  "hsl(270, 60%, 75%)", // lavender
-  "hsl(45, 90%, 65%)",  // sunny
-  "hsl(20, 80%, 75%)",  // peach
-  "hsl(180, 60%, 60%)", // teal
-  "hsl(320, 60%, 70%)", // pink
+  "hsl(350, 70%, 65%)",
+  "hsl(200, 70%, 72%)",
+  "hsl(160, 50%, 65%)",
+  "hsl(270, 60%, 75%)",
+  "hsl(45, 90%, 65%)",
+  "hsl(20, 80%, 75%)",
+  "hsl(180, 60%, 60%)",
+  "hsl(320, 60%, 70%)",
+];
+
+const CALM_COLORS = [
+  "hsl(220, 30%, 45%)",
+  "hsl(240, 25%, 50%)",
+  "hsl(200, 30%, 48%)",
+  "hsl(260, 25%, 50%)",
+  "hsl(210, 20%, 55%)",
+  "hsl(230, 25%, 48%)",
+  "hsl(250, 20%, 52%)",
+  "hsl(215, 25%, 45%)",
 ];
 
 interface Bloom {
@@ -20,8 +31,13 @@ interface Bloom {
   color: string;
 }
 
-const ColorWorld = () => {
-  const [bgColor, setBgColor] = useState(COLORS[0]);
+interface ColorWorldProps {
+  calmMode?: boolean;
+}
+
+const ColorWorld = ({ calmMode = false }: ColorWorldProps) => {
+  const palette = calmMode ? CALM_COLORS : COLORS;
+  const [bgColor, setBgColor] = useState(palette[0]);
   const [blooms, setBlooms] = useState<Bloom[]>([]);
   const colorIndex = useRef(0);
   const bloomId = useRef(0);
@@ -29,39 +45,50 @@ const ColorWorld = () => {
 
   useEffect(() => () => { flush(); }, [flush]);
 
-  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    let x: number, y: number;
-
-    if ("touches" in e) {
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
-    }
-
-    colorIndex.current = (colorIndex.current + 1) % COLORS.length;
-    const newColor = COLORS[colorIndex.current];
+  const addBloom = useCallback((x: number, y: number) => {
+    colorIndex.current = (colorIndex.current + 1) % palette.length;
+    const newColor = palette[colorIndex.current];
     setBgColor(newColor);
     playSound("chime");
+    if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", x, y, { color: newColor });
 
     const id = bloomId.current++;
-    setBlooms((prev) => [...prev.slice(-8), { id, x, y, color: newColor }]);
+    const maxBlooms = calmMode ? 4 : 8;
+    setBlooms((prev) => [...prev.slice(-maxBlooms), { id, x, y, color: newColor }]);
 
-    setTimeout(() => {
-      setBlooms((prev) => prev.filter((b) => b.id !== id));
-    }, 1500);
-  }, []);
+    const dur = calmMode ? 3000 : 1500;
+    setTimeout(() => setBlooms((prev) => prev.filter((b) => b.id !== id)), dur);
+  }, [palette, calmMode, trackEvent]);
+
+  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if ("touches" in e) {
+      // Multi-touch support
+      for (let i = 0; i < e.touches.length; i++) {
+        addBloom(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
+      }
+    } else {
+      addBloom(e.clientX - rect.left, e.clientY - rect.top);
+    }
+  }, [addBloom]);
+
+  const bloomDuration = calmMode ? "3s" : "1.5s";
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden cursor-pointer transition-colors duration-700"
-      style={{ backgroundColor: bgColor }}
+      className="fixed inset-0 overflow-hidden cursor-pointer"
+      style={{
+        backgroundColor: bgColor,
+        transition: `background-color ${calmMode ? "1.4s" : "0.7s"}`,
+        touchAction: "manipulation",
+        overscrollBehavior: "none",
+      }}
       onTouchStart={handleInteraction}
       onClick={handleInteraction}
+      role="application"
+      aria-label="Color World — tap to create color blooms"
     >
       {blooms.map((bloom) => (
         <div
@@ -73,13 +100,12 @@ const ColorWorld = () => {
             width: 80,
             height: 80,
             backgroundColor: bloom.color,
-            animation: "bloom 1.5s ease-out forwards",
+            animation: `bloom ${bloomDuration} ease-out forwards`,
             filter: "blur(8px)",
           }}
         />
       ))}
 
-      {/* Subtle hint circle */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           className="w-32 h-32 rounded-full animate-gentle-pulse opacity-20"

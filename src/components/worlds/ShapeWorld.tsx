@@ -22,6 +22,10 @@ interface Shape {
   rotation: number;
 }
 
+interface ShapeWorldProps {
+  calmMode?: boolean;
+}
+
 const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: number }) => {
   const half = size / 2;
   switch (type) {
@@ -33,7 +37,7 @@ const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: nu
       return <polygon points={`${half},4 ${size - 4},${size - 4} 4,${size - 4}`} fill={color} />;
     case "diamond":
       return <polygon points={`${half},4 ${size - 4},${half} ${half},${size - 4} 4,${half}`} fill={color} />;
-    case "star":
+    case "star": {
       const points = [];
       for (let i = 0; i < 5; i++) {
         const outerAngle = (i * 72 - 90) * (Math.PI / 180);
@@ -44,31 +48,20 @@ const ShapeSVG = ({ type, color, size }: { type: string; color: string; size: nu
         points.push(`${half + innerR * Math.cos(innerAngle)},${half + innerR * Math.sin(innerAngle)}`);
       }
       return <polygon points={points.join(" ")} fill={color} />;
+    }
     default:
       return <circle cx={half} cy={half} r={half - 4} fill={color} />;
   }
 };
 
-const ShapeWorld = () => {
+const ShapeWorld = ({ calmMode = false }: ShapeWorldProps) => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const shapeId = useRef(0);
   const { trackEvent, flush } = useAnalytics("shape");
 
   useEffect(() => () => { flush(); }, [flush]);
 
-  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    let x: number, y: number;
-
-    if ("touches" in e) {
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
-    }
-
+  const addShape = useCallback((x: number, y: number) => {
     const id = shapeId.current++;
     const size = 60 + Math.random() * 60;
     const newShape: Shape = {
@@ -80,11 +73,24 @@ const ShapeWorld = () => {
       size,
       rotation: Math.random() * 360,
     };
-
-    setShapes((prev) => [...prev.slice(-12), newShape]);
+    const maxShapes = calmMode ? 6 : 12;
+    setShapes((prev) => [...prev.slice(-maxShapes), newShape]);
     playSound("pop");
+    if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", x, y, { shape: newShape.type, color: newShape.color });
-  }, []);
+  }, [calmMode, trackEvent]);
+
+  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if ("touches" in e) {
+      for (let i = 0; i < e.touches.length; i++) {
+        addShape(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
+      }
+    } else {
+      addShape(e.clientX - rect.left, e.clientY - rect.top);
+    }
+  }, [addShape]);
 
   const handleShapeTap = useCallback((id: number) => {
     setShapes((prev) =>
@@ -99,32 +105,33 @@ const ShapeWorld = () => {
   return (
     <div
       className="fixed inset-0 overflow-hidden cursor-pointer"
-      style={{ backgroundColor: "hsl(40, 50%, 97%)" }}
+      style={{
+        backgroundColor: calmMode ? "hsl(240, 20%, 22%)" : "hsl(40, 50%, 97%)",
+        touchAction: "manipulation",
+        overscrollBehavior: "none",
+      }}
       onTouchStart={handleInteraction}
       onClick={handleInteraction}
+      role="application"
+      aria-label="Shape World — tap to create shapes"
     >
       {shapes.map((shape) => (
         <svg
           key={shape.id}
-          className="absolute transition-all duration-500 ease-out"
+          className="absolute"
           style={{
             left: shape.x,
             top: shape.y,
             width: shape.size,
             height: shape.size,
             transform: `rotate(${shape.rotation}deg)`,
-            animation: "bounce-in 0.5s ease-out forwards",
+            animation: `bounce-in ${calmMode ? "1s" : "0.5s"} ease-out forwards`,
             filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.1))",
+            transition: "width 0.5s, height 0.5s, transform 0.5s",
           }}
           viewBox={`0 0 ${shape.size} ${shape.size}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleShapeTap(shape.id);
-          }}
-          onTouchStart={(e) => {
-            e.stopPropagation();
-            handleShapeTap(shape.id);
-          }}
+          onClick={(e) => { e.stopPropagation(); handleShapeTap(shape.id); }}
+          onTouchStart={(e) => { e.stopPropagation(); handleShapeTap(shape.id); }}
         >
           <ShapeSVG type={shape.type} color={shape.color} size={shape.size} />
         </svg>

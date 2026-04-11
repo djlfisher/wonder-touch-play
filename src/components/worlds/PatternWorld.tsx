@@ -9,7 +9,11 @@ const PATTERNS = [
   { name: "checkers", colors: ["hsl(270,60%,75%)", "hsl(350,70%,65%)", "hsl(160,50%,65%)"] },
 ];
 
-const PatternWorld = () => {
+interface PatternWorldProps {
+  calmMode?: boolean;
+}
+
+const PatternWorld = ({ calmMode = false }: PatternWorldProps) => {
   const [patternIdx, setPatternIdx] = useState(0);
   const [phase, setPhase] = useState(0);
   const [taps, setTaps] = useState(0);
@@ -22,19 +26,20 @@ const PatternWorld = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setPhase((p) => p + 1);
-    }, 2000);
+    }, calmMode ? 4000 : 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [calmMode]);
 
   const handleTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
     setTaps((t) => t + 1);
     playSound("tone");
+    if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("tap", undefined, undefined, { pattern: PATTERNS[patternIdx].name });
     if (taps % 5 === 4) {
       setPatternIdx((i) => (i + 1) % PATTERNS.length);
     }
-  }, [taps]);
+  }, [taps, patternIdx, trackEvent]);
 
   const renderDots = () => {
     const dots = [];
@@ -47,13 +52,14 @@ const PatternWorld = () => {
         dots.push(
           <div
             key={`${r}-${c}`}
-            className="rounded-full transition-all duration-700"
+            className="rounded-full transition-all"
             style={{
               width: 36 + (taps % 3) * 8,
               height: 36 + (taps % 3) * 8,
               backgroundColor: pattern.colors[colorIdx],
               animationDelay: `${delay}s`,
-              animation: "gentle-pulse 2s ease-in-out infinite",
+              animation: `gentle-pulse ${calmMode ? "4s" : "2s"} ease-in-out infinite`,
+              transitionDuration: calmMode ? "1.4s" : "0.7s",
             }}
           />
         );
@@ -73,12 +79,13 @@ const PatternWorld = () => {
       waves.push(
         <div
           key={i}
-          className="w-full rounded-full transition-all duration-1000"
+          className="w-full rounded-full transition-all"
           style={{
             height: 30 + Math.sin((phase + i) * 0.5) * 15 + taps * 2,
             backgroundColor: pattern.colors[colorIdx],
             opacity: 0.7,
             animationDelay: `${i * 0.2}s`,
+            transitionDuration: calmMode ? "2s" : "1s",
           }}
         />
       );
@@ -93,10 +100,11 @@ const PatternWorld = () => {
       stripes.push(
         <div
           key={i}
-          className="flex-1 transition-all duration-700 rounded-lg"
+          className="flex-1 rounded-lg"
           style={{
             backgroundColor: pattern.colors[colorIdx],
             transform: `scaleY(${0.8 + Math.sin((phase + i) * 0.4) * 0.2})`,
+            transition: `all ${calmMode ? "1.4s" : "0.7s"}`,
           }}
         />
       );
@@ -113,11 +121,12 @@ const PatternWorld = () => {
         cells.push(
           <div
             key={`${r}-${c}`}
-            className="rounded-2xl transition-all duration-700"
+            className="rounded-2xl"
             style={{
               backgroundColor: pattern.colors[colorIdx % pattern.colors.length],
               aspectRatio: "1",
               transform: `rotate(${(phase + r + c) * 10 % 45}deg) scale(${0.85 + Math.sin((phase + r) * 0.5) * 0.15})`,
+              transition: `all ${calmMode ? "1.4s" : "0.7s"}`,
             }}
           />
         );
@@ -140,9 +149,15 @@ const PatternWorld = () => {
   return (
     <div
       className="fixed inset-0 overflow-hidden cursor-pointer flex items-center justify-center"
-      style={{ backgroundColor: "hsl(40, 50%, 97%)" }}
+      style={{
+        backgroundColor: calmMode ? "hsl(240, 20%, 20%)" : "hsl(40, 50%, 97%)",
+        touchAction: "manipulation",
+        overscrollBehavior: "none",
+      }}
       onTouchStart={handleTap}
       onClick={handleTap}
+      role="application"
+      aria-label="Pattern World — tap to change patterns"
     >
       {renderers[pattern.name]?.()}
     </div>
