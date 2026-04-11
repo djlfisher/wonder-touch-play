@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
-// Pentatonic scale — no dissonant combinations
 const NOTES = [
   { freq: 262, label: "C", color: "hsl(350, 70%, 65%)" },
   { freq: 294, label: "D", color: "hsl(200, 70%, 72%)" },
@@ -20,9 +19,10 @@ interface Ripple {
 
 interface MusicWorldProps {
   calmMode?: boolean;
+  onProgress?: () => void;
 }
 
-const MusicWorld = ({ calmMode = false }: MusicWorldProps) => {
+const MusicWorld = ({ calmMode = false, onProgress }: MusicWorldProps) => {
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set());
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const rippleId = useRef(0);
@@ -54,12 +54,13 @@ const MusicWorld = ({ calmMode = false }: MusicWorldProps) => {
     } catch {}
   }, [calmMode, getCtx]);
 
-  const handlePadTap = useCallback((idx: number, e: React.TouchEvent | React.MouseEvent) => {
+  const handlePadTap = useCallback((idx: number, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     playNote(NOTES[idx].freq);
     if (navigator.vibrate) navigator.vibrate(10);
     trackEvent("note", undefined, undefined, { note: NOTES[idx].label });
+    onProgress?.();
 
     setActiveNotes((prev) => new Set(prev).add(idx));
     setTimeout(() => setActiveNotes((prev) => {
@@ -71,7 +72,7 @@ const MusicWorld = ({ calmMode = false }: MusicWorldProps) => {
     const id = rippleId.current++;
     setRipples((prev) => [...prev.slice(-8), { id, noteIdx: idx }]);
     setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 800);
-  }, [playNote, trackEvent]);
+  }, [playNote, trackEvent, onProgress]);
 
   return (
     <div
@@ -94,11 +95,9 @@ const MusicWorld = ({ calmMode = false }: MusicWorldProps) => {
                 : `0 8px 24px rgba(0,0,0,0.1)`,
               opacity: calmMode ? 0.7 : 1,
             }}
-            onClick={(e) => handlePadTap(idx, e)}
-            onTouchStart={(e) => handlePadTap(idx, e)}
+            onPointerDown={(e) => handlePadTap(idx, e)}
             aria-label={`Play note ${note.label}`}
           >
-            {/* Ripple effect */}
             {ripples
               .filter((r) => r.noteIdx === idx)
               .map((r) => (
