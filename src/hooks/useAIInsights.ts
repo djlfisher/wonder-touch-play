@@ -7,7 +7,11 @@ export interface Insights {
   strengths: string[];
   suggestions: string[];
   favoriteWorld: string;
+  recommendedWorld: string;
 }
+
+const STORAGE_KEY = "le_insights_cache";
+type Cache = { ts: number; insights: Insights };
 
 export const useAIInsights = () => {
   const [insights, setInsights] = useState<Insights | null>(null);
