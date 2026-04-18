@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Sparkles, RefreshCw } from "lucide-react";
-import { useAIInsights } from "@/hooks/useAIInsights";
+import { useAIInsights, type Insights } from "@/hooks/useAIInsights";
 
 interface Props {
   stats: unknown;
+  onInsights?: (i: Insights) => void;
 }
 
-const InsightsCard = ({ stats }: Props) => {
-  const { insights, loading, fetchInsights } = useAIInsights();
-  const [hasRequested, setHasRequested] = useState(false);
+const InsightsCard = ({ stats, onInsights }: Props) => {
+  const { insights, loading, fetchInsights } = useAIInsights(onInsights);
+  const [hasRequested, setHasRequested] = useState(!!insights);
 
   const handleGenerate = () => {
     setHasRequested(true);
