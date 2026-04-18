@@ -57,11 +57,13 @@ const Index = () => {
     return keys.filter((k) => settings.worlds[k]);
   }, [settings.worlds]);
 
-  // "Try this next" — least-progressed enabled world (not 0 across the board)
+  // "Try this next" — prefer AI recommendation if available, else least-progressed enabled world
   const recommendedWorld = useMemo<WorldKey | null>(() => {
     if (!enabledWorldKeys.length) return null;
+    const aiRec = (typeof localStorage !== "undefined" ? localStorage.getItem("le_recommended_world") : null) as WorldKey | null;
+    if (aiRec && enabledWorldKeys.includes(aiRec)) return aiRec;
     const totalTaps = enabledWorldKeys.reduce((sum, k) => sum + (progress[k] || 0), 0);
-    if (totalTaps < 5) return null; // wait until they've played a bit
+    if (totalTaps < 5) return null;
     let pick: WorldKey = enabledWorldKeys[0];
     let min = Infinity;
     for (const k of enabledWorldKeys) {

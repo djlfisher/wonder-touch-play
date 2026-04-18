@@ -48,7 +48,10 @@ export const useAIInsights = (onInsights?: (i: Insights) => void) => {
       }
       const result = data as Insights;
       setInsights(result);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), insights: result })); } catch {}
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), insights: result }));
+        if (result.recommendedWorld) localStorage.setItem("le_recommended_world", result.recommendedWorld);
+      } catch {}
       onInsights?.(result);
       return result;
     } finally {
