@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAINarration } from "@/hooks/useAINarration";
+import SurpriseButton from "@/components/SurpriseButton";
 
 const COLORS = [
   "hsl(350, 70%, 65%)",
