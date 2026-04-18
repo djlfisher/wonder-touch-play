@@ -10,6 +10,7 @@ interface WorldSelectorProps {
   enabledWorlds: Record<WorldType, boolean>;
   parentUnlocked?: boolean;
   progress?: WorldProgress;
+  recommendedWorld?: WorldType | null;
 }
 
 const worlds = [
@@ -35,7 +36,7 @@ const StarBadges = ({ count }: { count: number }) => {
   );
 };
 
-const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true, progress }: WorldSelectorProps) => {
+const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = true, progress, recommendedWorld }: WorldSelectorProps) => {
   const available = worlds.filter((w) => enabledWorlds[w.key]);
   const navigate = useNavigate();
 
@@ -59,18 +60,26 @@ const WorldSelector = ({ onSelect, onSettings, enabledWorlds, parentUnlocked = t
         <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-5 shrink-0">
           {available.map((world) => {
             const stars = progress ? getStars(world.key, progress[world.key]) : 0;
+            const isRecommended = recommendedWorld === world.key;
             return (
               <button
                 key={world.key}
                 onClick={() => onSelect(world.key)}
-                className="rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-95 transition-transform duration-150 relative"
+                className={`rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-95 transition-transform duration-150 relative ${
+                  isRecommended ? "ring-2 ring-white/70 animate-[gentle-pulse_2s_ease-in-out_infinite]" : ""
+                }`}
                 style={{
                   backgroundColor: world.color,
                   aspectRatio: "1 / 1",
                   minHeight: "100px",
                 }}
-                aria-label={`Open ${world.label} world — ${world.description}${stars > 0 ? ` — ${stars} stars` : ""}`}
+                aria-label={`Open ${world.label} world — ${world.description}${stars > 0 ? ` — ${stars} stars` : ""}${isRecommended ? " — recommended" : ""}`}
               >
+                {isRecommended && (
+                  <span className="absolute -top-1 -right-1 bg-white text-foreground text-[9px] font-nunito font-bold px-1.5 py-0.5 rounded-full shadow">
+                    Try!
+                  </span>
+                )}
                 <world.icon size={26} className="text-white" />
                 <span className="font-nunito font-bold text-white text-sm leading-tight">
                   {world.label}
