@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAINarration } from "@/hooks/useAINarration";
 
 const ANIMALS = [
   { name: "Cat", emoji: "🐱", sound: "Meow!", color: "hsl(350, 70%, 65%)", freq: 600, type: "sine" as OscillatorType },
@@ -27,6 +28,8 @@ const AnimalWorld = ({ calmMode = false, onProgress }: AnimalWorldProps) => {
   const discoveredRef = useRef(new Set<string>());
   const audioCtxRef = useRef<AudioContext | null>(null);
   const { trackEvent, flush } = useAnalytics("animals");
+  const { narrate } = useAINarration();
+  const tapCountRef = useRef(0);
 
   useEffect(() => () => { flush(); }, [flush]);
 
@@ -114,6 +117,13 @@ const AnimalWorld = ({ calmMode = false, onProgress }: AnimalWorldProps) => {
 
       setTimeout(() => speakAnimalName(animal.name), calmMode ? 600 : 350);
 
+      tapCountRef.current += 1;
+      if (tapCountRef.current % 4 === 0) {
+        setTimeout(() => {
+          narrate(`animal:${animal.name}`, `The toddler tapped a ${animal.name}. Give one delighted short phrase about the animal.`);
+        }, calmMode ? 1500 : 1000);
+      }
+
       setTimeout(() => {
         setActiveIdx((curr) => (curr === idx ? null : curr));
         setBouncing((prev) => {
@@ -123,7 +133,7 @@ const AnimalWorld = ({ calmMode = false, onProgress }: AnimalWorldProps) => {
         });
       }, calmMode ? 1200 : 700);
     },
-    [playAnimalSound, speakAnimalName, calmMode, trackEvent, onProgress]
+    [playAnimalSound, speakAnimalName, calmMode, trackEvent, onProgress, narrate]
   );
 
   const cols = typeof window !== "undefined" && window.innerWidth > 600 ? 4 : 3;
