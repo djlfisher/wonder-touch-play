@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAINarration } from "@/hooks/useAINarration";
+import SurpriseButton from "@/components/SurpriseButton";
 
 const ANIMALS = [
   { name: "Cat", emoji: "🐱", sound: "Meow!", color: "hsl(350, 70%, 65%)", freq: 600, type: "sine" as OscillatorType },
@@ -210,6 +211,15 @@ const AnimalWorld = ({ calmMode = false, onProgress }: AnimalWorldProps) => {
           </button>
         ))}
       </div>
+
+      <SurpriseButton
+        world="animals"
+        buildPrompt={() => {
+          const pool = ["panda","penguin","fox","koala","giraffe","zebra","elephant","monkey","rabbit","turtle","whale","dolphin"];
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          return `A friendly happy ${pick} for a toddler picture book, soft pastel background.`;
+        }}
+      />
     </div>
   );
 };
