@@ -3,6 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, Palette, Shapes, Grid3X3, Wind, Music, Hash, Type, Blend, Cat, Volume2, Timer, BarChart3 } from "lucide-react";
 import { usePlayStats } from "@/hooks/usePlayStats";
+import InsightsCard from "@/components/parent/InsightsCard";
+import ParentChat from "@/components/parent/ParentChat";
 
 interface Settings {
   worlds: { color: boolean; shape: boolean; pattern: boolean; motion: boolean; music: boolean; number: boolean; alphabet: boolean; colormix: boolean; animals: boolean };
@@ -127,6 +129,12 @@ const ParentDashboard = ({ onBack, settings, onSettingsChange }: ParentDashboard
             )}
           </div>
         </section>
+
+        {/* AI Insights */}
+        <InsightsCard stats={{ todayTaps: stats.todayTaps, favoriteWorld: stats.favoriteWorld, worldStats: stats.worldStats, weekActivity: stats.weekActivity }} />
+
+        {/* AI Parent Chat */}
+        <ParentChat stats={{ todayTaps: stats.todayTaps, favoriteWorld: stats.favoriteWorld, worldStats: stats.worldStats }} />
 
         {/* World toggles */}
         <section className="mb-8">
