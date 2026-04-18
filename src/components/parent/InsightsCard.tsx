@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Sparkles, RefreshCw } from "lucide-react";
-import { useAIInsights } from "@/hooks/useAIInsights";
+import { useAIInsights, type Insights } from "@/hooks/useAIInsights";
 
 interface Props {
   stats: unknown;
+  onInsights?: (i: Insights) => void;
 }
 
-const InsightsCard = ({ stats }: Props) => {
-  const { insights, loading, fetchInsights } = useAIInsights();
-  const [hasRequested, setHasRequested] = useState(false);
+const InsightsCard = ({ stats, onInsights }: Props) => {
+  const { insights, loading, fetchInsights } = useAIInsights(onInsights);
+  const [hasRequested, setHasRequested] = useState(!!insights);
 
   const handleGenerate = () => {
     setHasRequested(true);
@@ -37,12 +38,18 @@ const InsightsCard = ({ stats }: Props) => {
           <>
             <p className="text-sm text-foreground font-nunito leading-relaxed">{insights.summary}</p>
 
-            {insights.favoriteWorld && (
-              <div className="text-xs text-muted-foreground font-nunito">
-                <span className="font-semibold text-foreground">Favorite:</span>{" "}
-                <span className="capitalize">{insights.favoriteWorld}</span>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {insights.favoriteWorld && (
+                <span className="px-3 py-1 rounded-full bg-mint/20 text-foreground text-xs font-nunito font-semibold capitalize">
+                  ❤ Loves: {insights.favoriteWorld}
+                </span>
+              )}
+              {insights.recommendedWorld && (
+                <span className="px-3 py-1 rounded-full bg-coral text-primary-foreground text-xs font-nunito font-semibold capitalize">
+                  ✨ Try next: {insights.recommendedWorld}
+                </span>
+              )}
+            </div>
 
             {insights.strengths?.length > 0 && (
               <div>

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAINarration } from "@/hooks/useAINarration";
+import SurpriseButton from "@/components/SurpriseButton";
 
 const COLORS = [
   "hsl(350, 70%, 65%)",
@@ -194,6 +195,14 @@ const AlphabetWorld = ({ calmMode = false, onProgress }: AlphabetWorldProps) => 
           </div>
         </div>
       )}
+
+      <SurpriseButton
+        world="alphabet"
+        buildPrompt={() => {
+          const last = letters.length > 0 ? letters[letters.length - 1].letter : currentLetter;
+          return `A bright cheerful object that starts with the letter ${last}, simple cartoon style for toddlers.`;
+        }}
+      />
     </div>
   );
 };
