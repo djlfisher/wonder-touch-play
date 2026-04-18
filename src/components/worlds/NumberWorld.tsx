@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAINarration } from "@/hooks/useAINarration";
 
 const OBJECT_COLORS = [
   "hsl(350, 70%, 65%)",
@@ -118,6 +119,7 @@ const NumberWorld = ({ calmMode = false, onProgress }: NumberWorldProps) => {
   const objId = useRef(0);
   const numberTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { trackEvent, flush } = useAnalytics("number");
+  const { narrate } = useAINarration();
 
   useEffect(() => () => { flush(); }, [flush]);
 
@@ -160,6 +162,13 @@ const NumberWorld = ({ calmMode = false, onProgress }: NumberWorldProps) => {
       trackEvent("tap", cx, cy, { count: next });
       onProgress?.(next);
 
+      // Celebrate milestones with AI narration
+      if (next === 5 || next === 10 || next === 15 || next === 20) {
+        setTimeout(() => {
+          narrate(`num:${next}`, `The toddler counted to ${next}. Give one warm celebratory phrase.`);
+        }, 800);
+      }
+
       setShowNumber(true);
       if (numberTimer.current) clearTimeout(numberTimer.current);
       numberTimer.current = setTimeout(() => setShowNumber(false), 2000);
@@ -167,7 +176,7 @@ const NumberWorld = ({ calmMode = false, onProgress }: NumberWorldProps) => {
       if (next === 1) setObjects([newObj]);
       return next;
     });
-  }, [palette, calmMode, trackEvent, onProgress]);
+  }, [palette, calmMode, trackEvent, onProgress, narrate]);
 
   return (
     <div

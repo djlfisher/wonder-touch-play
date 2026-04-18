@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { playSound } from "@/lib/sounds";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAINarration } from "@/hooks/useAINarration";
 
 const COLORS = [
   "hsl(350, 70%, 65%)",
@@ -62,6 +63,8 @@ const AlphabetWorld = ({ calmMode = false, onProgress }: AlphabetWorldProps) => 
   const objId = useRef(0);
   const displayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { trackEvent, flush } = useAnalytics("alphabet");
+  const { narrate } = useAINarration();
+  const tapCountRef = useRef(0);
 
   useEffect(() => () => { flush(); }, [flush]);
 
@@ -105,13 +108,21 @@ const AlphabetWorld = ({ calmMode = false, onProgress }: AlphabetWorldProps) => 
       if (navigator.vibrate) navigator.vibrate(10);
       trackEvent("tap", cx, cy, { letter });
 
+      // Adaptive AI narration ~ every 5th tap, after the spoken letter
+      tapCountRef.current += 1;
+      if (tapCountRef.current % 5 === 0) {
+        setTimeout(() => {
+          narrate(`alpha:${letter}`, `The toddler tapped the letter ${letter}. Give a delighted one-line phrase.`);
+        }, 700);
+      }
+
       setShowLetter(true);
       if (displayTimer.current) clearTimeout(displayTimer.current);
       displayTimer.current = setTimeout(() => setShowLetter(false), 2000);
 
       setCurrentIdx((i) => (i + 1) % ALPHABET.length);
     },
-    [palette, calmMode, currentIdx, trackEvent, onProgress]
+    [palette, calmMode, currentIdx, trackEvent, onProgress, narrate]
   );
 
   const currentLetter = ALPHABET[currentIdx === 0 && letters.length > 0 ? ALPHABET.length - 1 : (currentIdx - 1 + ALPHABET.length) % ALPHABET.length];

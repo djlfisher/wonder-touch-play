@@ -57,6 +57,19 @@ const Index = () => {
     return keys.filter((k) => settings.worlds[k]);
   }, [settings.worlds]);
 
+  // "Try this next" — least-progressed enabled world (not 0 across the board)
+  const recommendedWorld = useMemo<WorldKey | null>(() => {
+    if (!enabledWorldKeys.length) return null;
+    const totalTaps = enabledWorldKeys.reduce((sum, k) => sum + (progress[k] || 0), 0);
+    if (totalTaps < 5) return null; // wait until they've played a bit
+    let pick: WorldKey = enabledWorldKeys[0];
+    let min = Infinity;
+    for (const k of enabledWorldKeys) {
+      if ((progress[k] || 0) < min) { min = progress[k] || 0; pick = k; }
+    }
+    return pick;
+  }, [enabledWorldKeys, progress]);
+
   const currentWorldIdx = enabledWorldKeys.indexOf(view as WorldKey);
 
   const transitionTo = useCallback((nextView: View) => {
@@ -210,6 +223,7 @@ const Index = () => {
       enabledWorlds={settings.worlds}
       parentUnlocked={unlocked}
       progress={progress}
+      recommendedWorld={recommendedWorld}
     />
   );
 };
