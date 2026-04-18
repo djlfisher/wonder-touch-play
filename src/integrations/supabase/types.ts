@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_asset_cache: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_hash: string
+          storage_path: string
+          world: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_hash: string
+          storage_path: string
+          world: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_hash?: string
+          storage_path?: string
+          world?: string
+        }
+        Relationships: []
+      }
       app_sessions: {
         Row: {
           created_at: string
@@ -131,6 +155,70 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "app_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_conversations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "app_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "parent_conversations"
             referencedColumns: ["id"]
           },
         ]
